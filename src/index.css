@@ -874,6 +874,7 @@ header {
   position: relative;
   overflow: hidden;
   border-left: 4px solid var(--crimson);
+  flex-shrink: 0;
 }
 
 .fault-card.appealed {
