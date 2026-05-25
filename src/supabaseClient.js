@@ -8,9 +8,18 @@ const getSupaConfig = () => {
   try {
     const settings = JSON.parse(localStorage.getItem('snt_settings') || '{}');
     if (settings.supabaseUrl && settings.supabaseKey) {
+      // Tự động làm sạch URL nếu người dùng dán nhầm đường dẫn API REST (kết thúc bằng /rest/v1/)
+      let cleanUrl = settings.supabaseUrl.trim();
+      cleanUrl = cleanUrl.replace(/\/+$/, ""); // Xóa dấu gạch chéo cuối
+      
+      if (cleanUrl.endsWith("/rest/v1")) {
+        cleanUrl = cleanUrl.slice(0, -8); // Loại bỏ /rest/v1
+      }
+      cleanUrl = cleanUrl.replace(/\/+$/, ""); // Làm sạch lại dấu gạch chéo
+      
       return {
-        url: settings.supabaseUrl,
-        key: settings.supabaseKey
+        url: cleanUrl,
+        key: settings.supabaseKey.trim()
       };
     }
   } catch (e) {
