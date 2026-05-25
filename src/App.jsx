@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Dashboard from './components/Dashboard';
 import FaultForm from './components/FaultForm';
 import WallOfShame from './components/WallOfShame';
+import StatsArchive from './components/StatsArchive';
 import SettingsModal from './components/SettingsModal';
 import { db } from './supabaseClient';
 import { sound } from './components/SoundManager';
@@ -18,6 +19,7 @@ export default function App() {
   const [faults, setFaults] = useState([]);
   const [settings, setSettings] = useState(db.getSettings());
   const [showSettings, setShowSettings] = useState(false);
+  const [activeTab, setActiveTab] = useState('timeline'); // 'timeline' or 'archive'
   
   const [isMuted, setIsMuted] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -199,6 +201,17 @@ export default function App() {
     setFaults([]);
   };
 
+  const isToday = (dateStr) => {
+    if (!dateStr) return false;
+    const d = new Date(dateStr);
+    const today = new Date();
+    return d.getDate() === today.getDate() &&
+           d.getMonth() === today.getMonth() &&
+           d.getFullYear() === today.getFullYear();
+  };
+
+  const todayFaults = faults.filter(f => isToday(f.created_at));
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', gap: '15px' }}>
@@ -305,14 +318,46 @@ export default function App() {
               </div>
             )}
 
-            {/* Right Column - Wall of Shame */}
-            <WallOfShame 
-              faults={faults}
-              role={role}
-              onAppealSubmit={handleAppealSubmit}
-              onJudgeSubmit={handleJudgeSubmit}
-              onDeleteFault={handleDeleteFault}
-            />
+            {/* Right Column - Timeline or Statistics */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              {/* Tab Toggles */}
+              <div className="profile-switcher" style={{ width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+                <button 
+                  type="button" 
+                  className={`profile-btn ${activeTab === 'timeline' ? 'active bao' : ''}`}
+                  onClick={() => { sound.playKeyboard(); setActiveTab('timeline'); }}
+                  style={{ justifyContent: 'center' }}
+                >
+                  🔥 Án Hôm Nay ({todayFaults.length})
+                </button>
+                <button 
+                  type="button" 
+                  className={`profile-btn ${activeTab === 'archive' ? 'active ngan' : ''}`}
+                  onClick={() => { sound.playKeyboard(); setActiveTab('archive'); }}
+                  style={{ justifyContent: 'center' }}
+                >
+                  📊 Thống Kê & Lưu Trữ
+                </button>
+              </div>
+
+              {activeTab === 'timeline' ? (
+                <WallOfShame 
+                  faults={todayFaults}
+                  role={role}
+                  onAppealSubmit={handleAppealSubmit}
+                  onJudgeSubmit={handleJudgeSubmit}
+                  onDeleteFault={handleDeleteFault}
+                />
+              ) : (
+                <StatsArchive 
+                  faults={faults}
+                  role={role}
+                  onAppeal={handleAppealSubmit}
+                  onJudge={handleJudgeSubmit}
+                  onDelete={handleDeleteFault}
+                />
+              )}
+            </div>
           </main>
         </>
       )}
