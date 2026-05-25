@@ -1,12 +1,35 @@
 // Dashboard.jsx - "Ví Sinh Tồn" & Survival Heart Rate Monitor
 import React from 'react';
+import CalendarCard from './CalendarCard';
 
 export default function Dashboard({ faults, settings, onOpenSettings }) {
+  // 1. Tính toán số tháng luỹ kế kể từ khi bắt đầu phạm lỗi để ra hạn mức tích luỹ
+  const getElapsedMonths = () => {
+    if (faults.length === 0) return 1;
+    
+    // Tìm ngày của lỗi đầu tiên (mốc khởi chạy ứng dụng)
+    const dates = faults.map(f => new Date(f.created_at).getTime());
+    const oldestTime = Math.min(...dates);
+    const start = new Date(oldestTime);
+    const now = new Date();
+    
+    const yearsDiff = now.getFullYear() - start.getFullYear();
+    const monthsDiff = now.getMonth() - start.getMonth();
+    
+    // Trả về số tháng (tối thiểu là 1)
+    return Math.max(1, yearsDiff * 12 + monthsDiff + 1);
+  };
+
+  const elapsedMonths = getElapsedMonths();
+  const accumulatedBudget = elapsedMonths * settings.monthlyBudget; // Quỹ tổng luỹ kế của Bảo
+
   // Get active (not forgiven) faults to subtract from budget
   const activeFaults = faults.filter(f => f.status !== 'forgiven');
   const totalPenalized = activeFaults.reduce((sum, f) => sum + Number(f.amount), 0);
-  const remainingBalance = Math.max(0, settings.monthlyBudget - totalPenalized);
-  const remainingPercent = settings.monthlyBudget > 0 ? (remainingBalance / settings.monthlyBudget) * 100 : 0;
+  
+  // Số dư thực tế còn lại (cho phép số âm/dương tự động bù đắp sang tháng sau)
+  const remainingBalance = accumulatedBudget - totalPenalized;
+  const remainingPercent = accumulatedBudget > 0 ? Math.max(0, (remainingBalance / accumulatedBudget) * 100) : 0;
 
   // Format currency in VND
   const formatVND = (val) => {
@@ -39,8 +62,9 @@ export default function Dashboard({ faults, settings, onOpenSettings }) {
       .filter(f => f.status !== 'forgiven')
       .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
-    const dataPoints = [settings.monthlyBudget];
-    let currentBalance = settings.monthlyBudget;
+    // Vẽ biểu đồ bắt đầu từ Quỹ tích luỹ
+    const dataPoints = [accumulatedBudget];
+    let currentBalance = accumulatedBudget;
     
     chronologicalFaults.forEach(f => {
       currentBalance -= Number(f.amount);
@@ -54,7 +78,7 @@ export default function Dashboard({ faults, settings, onOpenSettings }) {
     const chartWidth = width - padding * 2;
 
     const pointsCount = dataPoints.length;
-    const maxVal = settings.monthlyBudget;
+    const maxVal = accumulatedBudget;
     
     // Map points to SVG coordinates
     const coords = dataPoints.map((val, index) => {
@@ -90,10 +114,10 @@ export default function Dashboard({ faults, settings, onOpenSettings }) {
         <div className="wallet-glow-effect"></div>
         <div className="wallet-top">
           <div>
-            <div className="wallet-label">Ví Sinh Tồn của Bảo</div>
+            <div className="wallet-label">Ví Sinh Tồn Luỹ Kế của Bảo</div>
             <div className="wallet-balance-row">
-              <span className="balance-amount">
-                {formatVND(remainingBalance).replace('₫', '')}
+              <span className="balance-amount" style={{ color: remainingBalance < 0 ? 'var(--crimson)' : 'inherit' }}>
+                {remainingBalance < 0 ? '-' : ''}{formatVND(Math.abs(remainingBalance)).replace('₫', '')}
                 <span className="balance-currency">VND</span>
               </span>
             </div>
@@ -124,6 +148,10 @@ export default function Dashboard({ faults, settings, onOpenSettings }) {
           <div className="metric-box">
             <span className="metric-label">Hạn mức tháng</span>
             <span className="metric-value">{formatVND(settings.monthlyBudget)}</span>
+          </div>
+          <div className="metric-box">
+            <span className="metric-label">Quỹ tích lũy ({elapsedMonths}T)</span>
+            <span className="metric-value" style={{ color: 'var(--cyan)' }}>{formatVND(accumulatedBudget)}</span>
           </div>
           <div className="metric-box">
             <span className="metric-label">Tổng tiền phạt</span>
@@ -190,6 +218,9 @@ export default function Dashboard({ faults, settings, onOpenSettings }) {
           }
         </p>
       </div>
+
+      {/* Calendar Crime Highlights */}
+      <CalendarCard faults={faults} />
     </section>
   );
 }

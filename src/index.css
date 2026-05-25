@@ -301,12 +301,12 @@ header {
 /* Dashboard Metrics Grid */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 2fr 1.1fr 1.3fr;
   gap: 25px;
   margin-bottom: 30px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
   }

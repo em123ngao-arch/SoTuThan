@@ -183,7 +183,7 @@ export const db = {
   // Get current settings (budget, pin, etc.)
   getSettings() {
     const defaultSettings = {
-      monthlyBudget: 2000000, // Hạn mức 2 triệu mặc định
+      monthlyBudget: 500000,  // Hạn mức cố định 500k/tháng mặc định
       supabaseUrl: import.meta.env.VITE_SUPABASE_URL || 'https://expjcbatrvecoiaenywq.supabase.co',
       supabaseKey: import.meta.env.VITE_SUPABASE_KEY || '',
       nganPin: '2403',       // Mã PIN Ngân của bạn
