@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { sound } from './SoundManager';
 
 // Single Fault Card with Countdown Timer
-function FaultCard({ fault, role, onAppeal, onJudge, onDelete, onZoomImage }) {
+function FaultCard({ fault, role, onAppeal, onJudge, onDelete, onZoomImage, onShareZalo }) {
   const [timeLeft, setTimeLeft] = useState('');
   const [canAppeal, setCanAppeal] = useState(false);
 
@@ -167,6 +167,22 @@ function FaultCard({ fault, role, onAppeal, onJudge, onDelete, onZoomImage }) {
           </>
         )}
 
+        {/* Ngân's Actions: Share to Zalo */}
+        {role === 'ngan' && (
+          <button 
+            className="card-btn"
+            style={{ borderColor: 'rgba(0, 191, 255, 0.4)', color: 'rgba(0, 191, 255, 1)', background: 'rgba(0, 191, 255, 0.03)' }}
+            onClick={() => onShareZalo(fault)}
+            title="Gửi thông báo qua Zalo"
+          >
+            {/* Zalo / Message Icon */}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            Gửi Zalo
+          </button>
+        )}
+
         {/* Ngân's Actions: Delete Card */}
         {role === 'ngan' && (
           <button 
@@ -200,6 +216,25 @@ export default function WallOfShame({ faults, role, onAppealSubmit, onJudgeSubmi
 
   const [zoomedImage, setZoomedImage] = useState(null);
   const [zoomedCaption, setZoomedCaption] = useState('');
+
+  const handleShareZalo = (fault) => {
+    sound.playKeyboard();
+    const formattedAmount = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(fault.amount);
+    const shareText = `🚨 CẢNH BÁO BẢN ÁN MỚI! 🦖👿\n\nBảo vừa bị Ngân phán phạt -${formattedAmount} vì tội:\n👉 "${fault.title}"\n\nAnh có 24 giờ để vào tự bào chữa kêu oan, nếu không số tiền phạt sẽ bị cấn trừ vào ví sinh tồn vĩnh viễn!\n👉 Vào tự bào chữa ngay tại đây: ${window.location.origin}`;
+    
+    if (navigator.share) {
+      navigator.share({
+        title: 'Sổ Ghi Lỗi Của Anh Người Yêu Xấu Xa 🦖',
+        text: shareText,
+        url: window.location.origin
+      }).catch(err => console.log('Share failed', err));
+    } else {
+      // Fallback: Copy to clipboard and open Zalo Web
+      navigator.clipboard.writeText(shareText);
+      alert('Đã sao chép nội dung thông báo vào bộ nhớ tạm! Hệ thống sẽ mở Zalo Web để bạn gửi tin nhắn cho Bảo.');
+      window.open('https://chat.zalo.me/', '_blank');
+    }
+  };
 
   // Handle Appeal click - open prompt
   const handleOpenAppeal = (id) => {
@@ -267,6 +302,7 @@ export default function WallOfShame({ faults, role, onAppealSubmit, onJudgeSubmi
               onAppeal={handleOpenAppeal}
               onJudge={handleOpenJudge}
               onDelete={onDeleteFault}
+              onShareZalo={handleShareZalo}
               onZoomImage={(img, caption) => {
                 sound.playKeyboard();
                 setZoomedImage(img);
