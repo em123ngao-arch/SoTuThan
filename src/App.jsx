@@ -216,7 +216,7 @@ export default function App() {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', gap: '15px' }}>
         <div style={{ width: '40px', height: '40px', border: '3px solid rgba(0,255,187,0.1)', borderTopColor: 'var(--mint)', borderRadius: '50%', animation: 'spinner 1s linear infinite' }}></div>
-        <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--cyan)' }}>ĐANG KHỞI ĐỘNG SỔ NAM TÀO...</p>
+        <p style={{ fontFamily: 'var(--font-mono)', color: 'var(--cyan)' }}>ĐANG MỞ SỔ GHI LỖI CỦA ANH NGƯỜI YÊU XẤU XA... 🦖👿</p>
       </div>
     );
   }
@@ -226,8 +226,8 @@ export default function App() {
       {/* Top Header */}
       <header>
         <div className="logo-section">
-          <h1>Sổ Nam Tào <span>Digital</span></h1>
-          <div className="logo-subtitle">Hệ thống phán tội & Sinh tồn của Bảo</div>
+          <h1>Sổ Ghi Lỗi <span>của Anh người yêu Xấu xa 🦖👿</span></h1>
+          <div className="logo-subtitle">Hệ thống phán tội & Giám sát ví sinh mạng của Bảo 💖💀</div>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
@@ -273,10 +273,10 @@ export default function App() {
       {/* Profile Intro / Alert for unauthenticated */}
       {!role && (
         <div className="glass-panel" style={{ textAlign: 'center', padding: '60px 20px', marginBottom: '30px', border: '1px dashed rgba(255, 255, 255, 0.1)' }}>
-          <div style={{ fontSize: '3.5rem', marginBottom: '15px' }}>📖💀</div>
-          <h2 style={{ fontSize: '1.8rem', marginBottom: '10px' }}>Chào mừng đến với Sổ Nam Tào Số Hóa</h2>
+          <div style={{ fontSize: '3.5rem', marginBottom: '15px' }}>📖🦖</div>
+          <h2 style={{ fontSize: '1.8rem', marginBottom: '10px' }}>Chào mừng đến với Sổ Ghi Lỗi của Anh người yêu Xấu xa 👿</h2>
           <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto 30px' }}>
-            Nơi Ngân ghi nhận mọi lỗi lầm của Bảo để tính toán độ thâm hụt của ví sinh tồn. Vui lòng chọn tài khoản ở góc trên bên phải để bắt đầu trải nghiệm!
+            Nơi Ngân ghi chép mọi tội lỗi đầy "đau đớn và phẫn nộ" của Bảo để cấn trừ trực tiếp vào ví sinh mạng tích lũy. Vui lòng đăng nhập để bắt đầu phiên tòa! ⚖️💖
           </p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
             <button className="btn-action mint" style={{ maxWidth: '200px' }} onClick={() => handleRoleSwitchRequest('bao')}>
@@ -434,7 +434,7 @@ export default function App() {
 
       {/* Footer */}
       <footer>
-        📖💀 Sổ Nam Tào Digital v1.0.0 • Chúc hai bạn luôn ngập tràn tiếng cười!
+        📖💀 Sổ Ghi Lỗi của Anh người yêu Xấu xa 🦖👿 v1.0.0 • Chúc hai bạn luôn ngập tràn tiếng cười!
       </footer>
     </div>
   );
