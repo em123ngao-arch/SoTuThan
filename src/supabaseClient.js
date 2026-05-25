@@ -66,6 +66,8 @@ export const db = {
   // Get all faults
   async getFaults() {
     const client = getSupabaseClient();
+    let allData = [];
+    
     if (client) {
       try {
         const { data, error } = await client
@@ -73,14 +75,36 @@ export const db = {
           .select('*')
           .order('created_at', { ascending: false });
         if (error) throw error;
-        return data || [];
+        allData = data || [];
       } catch (e) {
         console.error('Supabase query failed, falling back to local:', e);
+        const localData = localStorage.getItem('snt_faults') || '[]';
+        allData = JSON.parse(localData);
+      }
+    } else {
+      const localData = localStorage.getItem('snt_faults') || '[]';
+      allData = JSON.parse(localData);
+    }
+    
+    // Tìm dòng cấu hình hệ thống
+    const sysRow = allData.find(f => f.id === '00000000-0000-0000-0000-000000000000');
+    if (sysRow) {
+      try {
+        const currentSettings = this.getSettings();
+        const extractedSettings = {
+          ...currentSettings,
+          monthlyBudget: Number(sysRow.amount),
+          nganPin: sysRow.appeal_reason || currentSettings.nganPin,
+          baoPin: sysRow.admin_note || currentSettings.baoPin
+        };
+        localStorage.setItem('snt_settings', JSON.stringify(extractedSettings));
+      } catch (e) {
+        console.error('Failed to sync system row config to LocalStorage:', e);
       }
     }
-    // LocalStorage Fallback
-    const localData = localStorage.getItem('snt_faults') || '[]';
-    return JSON.parse(localData);
+
+    // Trả về danh sách lỗi đã lọc bỏ dòng cấu hình
+    return allData.filter(f => f.id !== '00000000-0000-0000-0000-000000000000');
   },
 
   // Save/Update a single fault
@@ -174,8 +198,30 @@ export const db = {
   },
 
   // Save settings
-  saveSettings(settings) {
+  async saveSettings(settings) {
     localStorage.setItem('snt_settings', JSON.stringify(settings));
+    
+    const client = getSupabaseClient();
+    if (client) {
+      try {
+        const sysRow = {
+          id: '00000000-0000-0000-0000-000000000000',
+          title: '__SYSTEM_SETTINGS__',
+          amount: Number(settings.monthlyBudget),
+          evidence: '',
+          created_at: new Date().toISOString(),
+          status: 'system',
+          appeal_reason: settings.nganPin,
+          admin_note: settings.baoPin
+        };
+        await client
+          .from('snt_faults')
+          .upsert(sysRow);
+      } catch (e) {
+        console.error('Failed to sync settings to Supabase:', e);
+      }
+    }
+    
     // Clear Supabase cache to force re-initialization with new credentials
     supabaseInstance = null;
     return settings;

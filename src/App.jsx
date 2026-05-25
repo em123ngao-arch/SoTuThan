@@ -26,11 +26,13 @@ export default function App() {
   useEffect(() => {
     const initApp = async () => {
       try {
-        const loadedSettings = db.getSettings();
-        setSettings(loadedSettings);
-        
+        // 1. Gọi getFaults trước vì nó sẽ tự động đồng bộ cấu hình từ Supabase về LocalStorage
         const loadedFaults = await db.getFaults();
         setFaults(loadedFaults);
+        
+        // 2. Sau đó nạp settings ra để giao diện nhận hạn mức ví và PIN mới nhất từ đám mây
+        const loadedSettings = db.getSettings();
+        setSettings(loadedSettings);
       } catch (err) {
         console.error('Failed to load application data:', err);
       } finally {
@@ -45,8 +47,13 @@ export default function App() {
     if (!settings.supabaseUrl || !settings.supabaseKey) return;
 
     const interval = setInterval(async () => {
+      // Fetch và cập nhật lỗi
       const updatedFaults = await db.getFaults();
       setFaults(updatedFaults);
+      
+      // Đồng thời nạp lại cấu hình (hạn mức ví, PIN) từ đám mây vừa ghi đè vào LocalStorage
+      const updatedSettings = db.getSettings();
+      setSettings(updatedSettings);
     }, 10000); // 10 seconds
 
     return () => clearInterval(interval);
@@ -179,14 +186,11 @@ export default function App() {
   };
 
   // Save Settings
-  const handleSaveSettings = (newSettings) => {
-    const saved = db.saveSettings(newSettings);
+  const handleSaveSettings = async (newSettings) => {
+    const saved = await db.saveSettings(newSettings);
     setSettings(saved);
-    // Reload faults in case Supabase connection was toggled
-    setTimeout(async () => {
-      const loadedFaults = await db.getFaults();
-      setFaults(loadedFaults);
-    }, 500);
+    const loadedFaults = await db.getFaults();
+    setFaults(loadedFaults);
   };
 
   // Reset database
