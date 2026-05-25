@@ -5,17 +5,33 @@ import { createClient } from '@supabase/supabase-js';
 
 // Load credentials from LocalStorage
 const getSupaConfig = () => {
+  // 1. Ưu tiên nạp từ biến môi trường (Cực kỳ khuyên dùng cho Vercel để tránh rườm rà)
+  const envUrl = import.meta.env.VITE_SUPABASE_URL;
+  const envKey = import.meta.env.VITE_SUPABASE_KEY;
+
+  if (envUrl && envKey) {
+    let cleanUrl = envUrl.trim().replace(/\/+$/, "");
+    if (cleanUrl.endsWith("/rest/v1")) {
+      cleanUrl = cleanUrl.slice(0, -8);
+    }
+    cleanUrl = cleanUrl.replace(/\/+$/, "");
+    return {
+      url: cleanUrl,
+      key: envKey.trim()
+    };
+  }
+
+  // 2. Fallback về LocalStorage của thiết bị nếu không có biến môi trường
   try {
     const settings = JSON.parse(localStorage.getItem('snt_settings') || '{}');
     if (settings.supabaseUrl && settings.supabaseKey) {
-      // Tự động làm sạch URL nếu người dùng dán nhầm đường dẫn API REST (kết thúc bằng /rest/v1/)
       let cleanUrl = settings.supabaseUrl.trim();
-      cleanUrl = cleanUrl.replace(/\/+$/, ""); // Xóa dấu gạch chéo cuối
+      cleanUrl = cleanUrl.replace(/\/+$/, ""); 
       
       if (cleanUrl.endsWith("/rest/v1")) {
-        cleanUrl = cleanUrl.slice(0, -8); // Loại bỏ /rest/v1
+        cleanUrl = cleanUrl.slice(0, -8); 
       }
-      cleanUrl = cleanUrl.replace(/\/+$/, ""); // Làm sạch lại dấu gạch chéo
+      cleanUrl = cleanUrl.replace(/\/+$/, ""); 
       
       return {
         url: cleanUrl,
@@ -143,11 +159,11 @@ export const db = {
   // Get current settings (budget, pin, etc.)
   getSettings() {
     const defaultSettings = {
-      monthlyBudget: 2000000, // 2 million VND default
-      supabaseUrl: '',
-      supabaseKey: '',
-      nganPin: '1111',       // Default PIN for Ngân (Admin)
-      baoPin: '0000',        // Default PIN for Bảo (User)
+      monthlyBudget: 2000000, // Hạn mức 2 triệu mặc định
+      supabaseUrl: import.meta.env.VITE_SUPABASE_URL || 'https://expjcbatrvecoiaenywq.supabase.co',
+      supabaseKey: import.meta.env.VITE_SUPABASE_KEY || '',
+      nganPin: '2403',       // Mã PIN Ngân của bạn
+      baoPin: '1111',        // Mã PIN Bảo của bạn
     };
     try {
       const localSettings = localStorage.getItem('snt_settings');
